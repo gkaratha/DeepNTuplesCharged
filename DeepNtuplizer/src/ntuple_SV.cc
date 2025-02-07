@@ -231,7 +231,7 @@ bool ntuple_SV::compareDxyDxyErr(const reco::VertexCompositePtrCandidate &sva,co
 bool ntuple_SV::fillBranches(const pat::Jet & jet, const size_t& jetidx, const  edm::View<pat::Jet> * coll){
 
 
-    const float jet_uncorr_e=jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_e=-1;//jet.correctedJet("Uncorrected").energy();
     const reco::Vertex & pv =    vertices()->at(0);
     math::XYZVector jetDir = jet.momentum().Unit();
     GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());

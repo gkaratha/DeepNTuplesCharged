@@ -223,8 +223,8 @@ bool ntuple_LT::fillBranches(const pat::Jet & jet, const size_t& jetidx, const  
 
     std::vector<sorting::sortingClass<size_t> > sortedcharged;
 
-    const float jet_uncorr_pt=jet.correctedJet("Uncorrected").pt();
-    const float jet_uncorr_e=jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_pt=-1;//jet.correctedJet("Uncorrected").pt();
+    const float jet_uncorr_e=-1;//jet.correctedJet("Uncorrected").energy();
 
     TrackInfoBuilder trackinfo(builder);
     int n_lts = 0;

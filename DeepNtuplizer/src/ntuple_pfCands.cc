@@ -295,8 +295,8 @@ bool ntuple_pfCands::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
 
     std::vector<sorting::sortingClass<size_t> > sortedcharged, sortedneutrals;
 
-    const float jet_uncorr_pt=jet.correctedJet("Uncorrected").pt();
-    const float jet_uncorr_e=jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_pt=-1;//jet.correctedJet("Uncorrected").pt();
+    const float jet_uncorr_e=-1;//jet.correctedJet("Uncorrected").energy();
 
     // tau signal candidates
     float min_pt_for_taus_ = 5.0;

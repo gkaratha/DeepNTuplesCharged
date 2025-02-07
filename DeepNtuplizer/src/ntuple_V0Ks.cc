@@ -90,7 +90,7 @@ bool ntuple_V0Ks::compareDxyDxyErr(const reco::VertexCompositePtrCandidate &sva,
 
 bool ntuple_V0Ks::fillBranches(const pat::Jet & jet, const size_t& jetidx, const  edm::View<pat::Jet> * coll){
 
-    const float jet_uncorr_e = jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_e = -1;// jet.correctedJet("Uncorrected").energy();
     const reco::Vertex & pv = vertices()->at(0);
     GlobalVector jetRefTrackDir(jet.px(),jet.py(),jet.pz());
 

@@ -218,8 +218,8 @@ bool ntuple_pairwise::fillBranches(const pat::Jet & jet, const size_t& jetidx, c
 
     std::vector<sorting::sortingClass<size_t> > sortedcharged, sortedneutrals;
 
-    const float jet_uncorr_pt=jet.correctedJet("Uncorrected").pt();
-    const float jet_uncorr_e=jet.correctedJet("Uncorrected").energy();
+    const float jet_uncorr_pt=-1;//jet.correctedJet("Uncorrected").pt();
+    const float jet_uncorr_e=-1;//jet.correctedJet("Uncorrected").energy();
 
     TrackInfoBuilder trackinfo(builder);
     //create collection first, to be able to do some sorting

@@ -9,7 +9,7 @@ options = VarParsing.VarParsing()
 
 options.register('inputScript','',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"input Script")
 options.register('outputFile','output',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
-options.register('maxEvents', 50001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
+options.register('maxEvents', 5001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
@@ -17,7 +17,7 @@ options.register('reportEvery', 1000, VarParsing.VarParsing.multiplicity.singlet
 options.register('gluonReduction', 0.0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.float, "gluon reduction")
 options.register('selectJets', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "select jets with good gen match")
 options.register('phase2', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "apply jet selection for phase 2. Currently sets JetEtaMax to 3.0 and picks slimmedJetsPuppi as jet collection.")
-options.register('puppi', True, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use puppi jets")
+options.register('puppi', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use puppi jets")
 options.register('eta', False, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.bool, "use eta up to 5.0")
 
 
@@ -27,7 +27,7 @@ print("Using release "+release)
 
 
 options.register(
-	'inputFiles','',
+	'inputFiles','file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_10_step5_mini.root',
 	VarParsing.VarParsing.multiplicity.list,
 	VarParsing.VarParsing.varType.string,
 	"input files (default is the tt RelVal)"
@@ -80,8 +80,6 @@ process.source.fileNames = process.source.fileNames[jobNumber:numberOfFiles:numb
 if options.nJobs > 1:
     print ("running over these files:")
     print (process.source.fileNames)
-
-process.source.fileNames = [ 'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
 
 process.source.skipEvents = cms.untracked.uint32(options.skipEvents)
 process.maxEvents  = cms.untracked.PSet( 
@@ -138,14 +136,10 @@ else :
       'pfParticleTransformerAK4JetTags:probg',
  ] + _pfParticleNetFromMiniAODAK4PuppiCentralJetTagsProbs + pfParticleNetAK4JetTagsAll + _pfUnifiedParticleTransformerAK4JetTagsAll
 
-jetCorrectionsAK4 = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
+#jetCorrectionsAK4 = ('AK4PFChg', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
 
 from PhysicsTools.PatAlgos.tools.jetTools import updateJetCollection
-if options.phase2:
-    usePuppi = True
-
-if usePuppi:
-    jetCorrectionsAK4 = ('AK4PFPuppi', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
+process.load("TrackingTools/TransientTrack/TransientTrackBuilder_cfi")
     
 ###########################################################################
 #
@@ -180,6 +174,20 @@ addProcessAndTask(process, jetCollectionRecluster, ak4PFJetsPuppi.clone(
       srcWeights = "puppi"
     )
 )
+############################## trackjet #####################################
+addProcessAndTask(process, "packedPFCandidatesChg",cms.EDFilter("CandPtrSelector",
+      src = cms.InputTag("packedPFCandidates"),
+      cut = cms.string("charge != 0")
+    )
+  )
+
+from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
+addProcessAndTask(process, "ak4PFChgJets", ak4PFJets.clone(
+        src = "packedPFCandidatesChg",
+        jetPtMin=5,
+        doAreaFastjet = True
+      )
+)
 
 ###########################################################################
 #
@@ -187,57 +195,52 @@ addProcessAndTask(process, jetCollectionRecluster, ak4PFJetsPuppi.clone(
 #
 ###########################################################################
 from PhysicsTools.PatAlgos.tools.jetTools import addJetCollection
+
+
 addJetCollection(
-  process,
-  postfix            = "Recluster",
-  labelName          = "AK4Puppi",
-  jetSource          = cms.InputTag(jetCollectionRecluster),
-  algo               = "ak", #name of algo must be in this format
-  rParam             = 0.4,
-  pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
-  pfCandidates       = cms.InputTag("packedPFCandidates"),
-  svSource           = cms.InputTag("slimmedSecondaryVertices"),
-  muSource           = cms.InputTag("slimmedMuons"),
-  elSource           = cms.InputTag("slimmedElectrons"),
-  genJetCollection   = cms.InputTag("ak4GenJetsRecluster"), # This is setup below
-  genParticles       = cms.InputTag("prunedGenParticles"),
-  jetCorrections     = jetCorrectionsAK4,
+      process,
+      labelName          = "AK4PFChg",
+      jetSource          = cms.InputTag("ak4PFChgJets"),
+      algo               = "ak", #name of algo must be in this format
+      rParam             = 0.4,
+      pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      pfCandidates       = cms.InputTag("packedPFCandidates"),
+      svSource           = cms.InputTag("slimmedSecondaryVertices"),
+      muSource           = cms.InputTag("slimmedMuons"),
+      elSource           = cms.InputTag("slimmedElectrons"),
+      genJetCollection   = cms.InputTag("ak4GenJetsRecluster"),
+      genParticles       = cms.InputTag("prunedGenParticles"),
+      jetCorrections     = None ,
 )
-
-process.patJetsAK4PuppiRecluster.getJetMCFlavour = True
-getattr(process, "patJetFlavourAssociationAK4PuppiRecluster").weights = cms.InputTag("puppi")
-
-if usePuppi:
-    jet_collection = 'patJetsAK4PuppiRecluster'
-else:
-    jet_collection = 'slimmedJets'
 
 updateJetCollection(
-        process,
-        labelName = "DeepFlavour",
-        jetSource = cms.InputTag(jet_collection),  # 'ak4Jets'
-        jetCorrections = jetCorrectionsAK4,
-        pfCandidates = cms.InputTag('packedPFCandidates'),
-        pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
-        svSource = cms.InputTag('slimmedSecondaryVertices'),
-        muSource = cms.InputTag('slimmedMuons'),
-        elSource = cms.InputTag('slimmedElectrons'),
-        btagInfos = bTagInfos,
-        btagDiscriminators = bTagDiscriminators,
-        explicitJTA = False
+      process,
+      labelName = "AK4PFChg",
+      jetSource = cms.InputTag("selectedPatJetsAK4PFChg"),
+      pfCandidates = cms.InputTag('packedPFCandidates'),
+      pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      svSource = cms.InputTag('slimmedSecondaryVertices'),
+      muSource = cms.InputTag('slimmedMuons'),
+      elSource = cms.InputTag('slimmedElectrons'),
+      jetCorrections = None,
+      btagDiscriminators = None,
+      btagInfos = None,
+      explicitJTA = False
 )
 
-if hasattr(process,'updatedPatJetsTransientCorrectedDeepFlavour'):
-  process.updatedPatJetsTransientCorrectedDeepFlavour.addTagInfos = cms.bool(True) 
-  process.updatedPatJetsTransientCorrectedDeepFlavour.addBTagInfo = cms.bool(True)
+if hasattr(process,'updatedPatJetsTransientCorrectedAK4PFChg'): 
+   pass
+#  process.updatedPatJetsTransientCorrectedAK4PFChg.addTagInfos = cms.bool(True) 
+#  process.updatedPatJetsTransientCorrectedAK4PFChg.addBTagInfo = cms.bool(True)
 else:
-  raise ValueError('I could not find updatedPatJetsTransientCorrectedDeepFlavour to embed the tagInfos, please check the cfg')
+ pass
+#  raise ValueError('I could not find updatedPatJetsTransientCorrectedDeepFlavour to embed the tagInfos, please check the cfg')
 
 # QGLikelihood
 process.load("DeepNTuples.DeepNtuplizer.QGLikelihood_cfi")
 process.es_prefer_jec = cms.ESPrefer("PoolDBESSource", "QGPoolDBESSource")
 process.load('RecoJets.JetProducers.QGTagger_cfi')
-process.QGTagger.srcJets   = cms.InputTag("selectedUpdatedPatJetsDeepFlavour")
+process.QGTagger.srcJets   = cms.InputTag("selectedUpdatedPatJetsAK4PFChg")
 process.QGTagger.jetsLabel = cms.string('QGL_AK4PFchs')
 
 
@@ -245,12 +248,12 @@ from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
 process.ak4GenJetsWithNu = ak4GenJets.clone(src ='packedGenParticles')
  
  ## Filter out neutrinos from packed GenParticles
-process.packedGenParticlesForJetsNoNu = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedGenParticles"), cut = cms.string("abs(pdgId) != 12 && abs(pdgId) != 14 && abs(pdgId) != 16"))
+process.packedGenParticlesForJetsNoNu = cms.EDFilter("CandPtrSelector", src = cms.InputTag("packedGenParticles"), cut = cms.string("abs(pdgId) != 12 && abs(pdgId) != 14 && abs(pdgId) != 16 && charge!=0"))
  ## Define GenJets
 process.ak4GenJetsRecluster = ak4GenJets.clone(src = 'packedGenParticlesForJetsNoNu')
 
 process.patGenJetMatchAllowDuplicates = cms.EDProducer("GenJetMatcher",  # cut on deltaR; pick best by deltaR           
-    src         = cms.InputTag("selectedUpdatedPatJetsDeepFlavour"),      # RECO jets (any View<Jet> is ok) 
+    src         = cms.InputTag("selectedUpdatedPatJetsAK4PFChg"),      # RECO jets (any View<Jet> is ok) 
     matched     = cms.InputTag("ak4GenJetsWithNu"),        # GEN jets  (must be GenJetCollection)              
     mcPdgId     = cms.vint32(),                      # n/a   
     mcStatus    = cms.vint32(),                      # n/a   
@@ -263,7 +266,7 @@ process.patGenJetMatchAllowDuplicates = cms.EDProducer("GenJetMatcher",  # cut o
  
  
 process.patGenJetMatchWithNu = cms.EDProducer("GenJetMatcher",  # cut on deltaR; pick best by deltaR           
-    src         = cms.InputTag("selectedUpdatedPatJetsDeepFlavour"),      # RECO jets (any View<Jet> is ok) 
+    src         = cms.InputTag("selectedUpdatedPatJetsAK4PFChg"),      # RECO jets (any View<Jet> is ok) 
     matched     = cms.InputTag("ak4GenJetsWithNu"),        # GEN jets  (must be GenJetCollection)              
     mcPdgId     = cms.vint32(),                      # n/a   
     mcStatus    = cms.vint32(),                      # n/a   
@@ -275,7 +278,7 @@ process.patGenJetMatchWithNu = cms.EDProducer("GenJetMatcher",  # cut on deltaR;
 )
 
 process.patGenJetMatchRecluster = cms.EDProducer("GenJetMatcher",  # cut on deltaR; pick best by deltaR           
-    src         = cms.InputTag("selectedUpdatedPatJetsDeepFlavour"),      # RECO jets (any View<Jet> is ok) 
+    src         = cms.InputTag("selectedUpdatedPatJetsAK4PFChg"),      # RECO jets (any View<Jet> is ok) 
     matched     = cms.InputTag("ak4GenJetsRecluster"),        # GEN jets  (must be GenJetCollection)              
     mcPdgId     = cms.vint32(),                      # n/a   
     mcStatus    = cms.vint32(),                      # n/a   
@@ -311,27 +314,19 @@ process.TFileService = cms.Service("TFileService",
                                    fileName = cms.string(outFileName))
 
 # DeepNtuplizer
-process.load("DeepNTuples.DeepNtuplizer.DeepNtuplizer_cfi")
-process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsDeepFlavour')
-process.deepntuplizer.bDiscriminators = bTagDiscriminators 
-process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')
+process.load("DeepNTuples.DeepNtuplizer.BareDeepNtuplizer_cfi")
+process.deepntuplizer.jets = cms.InputTag('selectedUpdatedPatJetsAK4PFChg')
+#process.deepntuplizer.bDiscriminators = bTagDiscriminators 
+#process.deepntuplizer.bDiscriminators.append('pfCombinedMVAV2BJetTags')
 process.deepntuplizer.LooseSVs = cms.InputTag("looseIVFinclusiveCandidateSecondaryVertices")
 
 process.deepntuplizer.applySelection = cms.bool(options.selectJets)
 
-if ( int(releases[0]) > 8 ) or ( (int(releases[0])==8) and (int(releases[1]) >= 4) ):
-   process.deepntuplizer.tagInfoName = cms.string('pfDeepCSV')
+#if ( int(releases[0]) > 8 ) or ( (int(releases[0])==8) and (int(releases[1]) >= 4) ):
+#process.deepntuplizer.tagInfoName = cms.string('pfDeepCSV')
 
-if options.eta :
-    process.deepntuplizer.jetAbsEtaMax = cms.double(5.0)
-    process.deepntuplizer.jetPtMin = cms.double(10.0)
-else:
-    process.deepntuplizer.jetAbsEtaMax = cms.double(2.5)
-    process.deepntuplizer.jetPtMin = cms.double(15.0)
-
-if options.phase2 :
-    process.deepntuplizer.jetAbsEtaMax = cms.double(3.0)
-
+process.deepntuplizer.jetAbsEtaMax = cms.double(2.5)
+process.deepntuplizer.jetPtMin = cms.double(5.0)
 process.deepntuplizer.gluonReduction  = cms.double(options.gluonReduction)
 
 #1631
@@ -352,10 +347,17 @@ for mod in process.filters_().values(): #.itervalues():
 process.patAlgosToolsTask = getPatAlgosToolsTask(process)
 
 process.p = cms.Path(
-    process.QGTagger + process.deepntuplizer,
-    process.tsk, 
-    process.patAlgosToolsTask, 
-    process.genJetReclusterTask, 
-    process.genJetMatchTask
+    process.tsk,
+    process.patAlgosToolsTask,
+    process.genJetReclusterTask,
+    process.genJetMatchTask#,
+#    cms.Task(process.deepntuplizer)
+    #process.QGTagger#, #+process.deepntuplizer,
+    #process.tsk#, 
+    #process.patAlgosToolsTask#, 
+    #process.genJetReclusterTask, 
+    #process.genJetMatchTask
 )
+process.ep = cms.EndPath(process.deepntuplizer)
 
+process.schedule = cms.Schedule(process.p, process.ep)

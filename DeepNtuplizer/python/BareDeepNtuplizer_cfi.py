@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 
-deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
+deepntuplizer = cms.EDAnalyzer('BareDeepNtuplizer',
                                 vertices   = cms.InputTag("offlineSlimmedPrimaryVertices"),
                                 secVertices = cms.InputTag("slimmedSecondaryVertices"),
                                 jets       = cms.InputTag("slimmedJetsPuppi"),
@@ -32,8 +32,8 @@ deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
                                 jetAbsEtaMin = cms.double(0.0),
                                 jetAbsEtaMax = cms.double(5.0),
                                 gluonReduction = cms.double(0.0),
-                                #tagInfoName = cms.string('deepNN'),
-                                #tagInfoFName = cms.string('pfBoostedDoubleSVAK8'),
+                                tagInfoName = cms.string('deepNN'),
+                                tagInfoFName = cms.string('pfBoostedDoubleSVAK8'),
                                 bDiscriminators = cms.vstring(),
                                 qgtagger        = cms.string("QGTagger"),
                                 candidates      = cms.InputTag("packedPFCandidates"),

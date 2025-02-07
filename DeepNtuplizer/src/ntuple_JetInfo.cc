@@ -144,12 +144,12 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"gen_particle_daughters_status", &gen_particle_daughters_status_, "gen_particle_daughters_status_[gend_number_]/F");
     addBranch(tree,"gen_particle_daughters_charge", &gen_particle_daughters_charge_, "gen_particle_daughters_charge_[gend_number_]/F");
 
-    if(1) // discriminators might need to be filled differently. FIXME
+    /*if(1) // discriminators might need to be filled differently. FIXME
         for(auto& entry : discriminators_) {
             string better_name(entry.first);
             std::replace(better_name.begin(), better_name.end(), ':', '_');
             addBranch(tree,better_name.c_str(), &entry.second, (better_name+"/F").c_str());
-        }
+        }*/
 }
 
 void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
@@ -662,9 +662,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         if(TRandom_.Uniform()>gluonReduction_) returnval=false;
 
     //branch fills
-    for(auto& entry : discriminators_) {
+    /*for(auto& entry : discriminators_) {
         entry.second = catchInfs(jet.bDiscriminator(entry.first),-0.1);
-    }
+    }*/
 
     npv_ = vertices()->size();
 
@@ -799,7 +799,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     if(isUndefined_) returnval=false;
     pat::JetCollection h;
 
-    jet_pt_ = jet.correctedJet("Uncorrected").pt();
+    jet_pt_ = jet.pt();
     jet_eta_ = jet.eta();
     jet_phi_ = jet.phi();
     jet_corr_pt_ = jet.pt();
