@@ -275,14 +275,12 @@ BareDeepNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     size_t jetidx=indices.at(j);
     jetIter = jets->begin()+jetidx;
     const pat::Jet& jet = *jetIter;
-    std::cout<<jet.pt()<<std::endl;
     if(jet.genJet())
       njetswithgenjet_++;
 
     bool writejet=true;
     size_t idx = 0;
     for(auto& m:modules_){
-    //  std::cout<<m<<std::endl;
       if(! m->fillBranches(jet, jetidx, jets.product())){
 	writejet=false;
 	if(applySelection_) break;

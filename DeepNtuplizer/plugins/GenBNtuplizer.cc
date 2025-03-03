@@ -71,6 +71,7 @@ private:
   edm::EDGetTokenT<reco::GenParticleCollection> genParticlesToken_;
   edm::EDGetTokenT<pat::PackedCandidateCollection> pfToken_;
   bool WriteJetPart=false;
+  bool WriteQjetPart=false;
   bool WritePFcands=false;
 
 
@@ -97,6 +98,14 @@ private:
   std::vector<float> m_jet_vx;
   std::vector<float> m_jet_vy;
   std::vector<float> m_jet_vz;
+
+  std::vector<int> m_qjetpart_qjetIdx;
+  std::vector<float> m_qjetpart_pt;
+  std::vector<float> m_qjetpart_eta;
+  std::vector<float> m_qjetpart_phi;
+  std::vector<float> m_qjetpart_charge;
+  std::vector<int> m_qjetpart_pdgId;
+
   std::vector<int> m_jetpart_jetIdx;
   std::vector<float> m_jetpart_pt;
   std::vector<float> m_jetpart_eta;
@@ -198,6 +207,7 @@ GenBNtuplizer::GenBNtuplizer(const edm::ParameterSet& iConfig):
   genParticlesToken_(consumes<reco::GenParticleCollection>(iConfig.getParameter<edm::InputTag>("genparts"))),
   pfToken_(consumes<pat::PackedCandidateCollection>(iConfig.getParameter<edm::InputTag>("pfcands"))),
   WriteJetPart((iConfig.getParameter<bool>("writeJetPart"))),
+  WriteQjetPart((iConfig.getParameter<bool>("writeChgJetPart"))),
   WritePFcands((iConfig.getParameter<bool>("writePFcands")))
 {
 
@@ -237,6 +247,15 @@ GenBNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
   m_jet_vz.clear();
   m_jet_ntrk.clear();
   m_jet_npf.clear();
+ 
+
+  m_qjetpart_qjetIdx.clear();
+  m_qjetpart_pt.clear();
+  m_qjetpart_eta.clear();
+  m_qjetpart_phi.clear();
+  m_qjetpart_charge.clear();
+  m_qjetpart_pdgId.clear();
+
   m_jetpart_jetIdx.clear();
   m_jetpart_pt.clear();
   m_jetpart_eta.clear();
@@ -566,7 +585,6 @@ GenBNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
 
   // loop over the jets
   for(const pat::Jet& jet: *qjets){
-    m_qjets+=1;
     m_qjet_pt.push_back(jet.pt());
     m_qjet_eta.push_back(jet.eta());
     m_qjet_phi.push_back(jet.phi());
@@ -577,6 +595,17 @@ GenBNtuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup)
     m_qjet_vy.push_back(jet.vy());
     m_qjet_vz.push_back(jet.vz());
     m_qjet_ntrk.push_back(jet.chargedMultiplicity());
+    if (WriteQjetPart){
+      for (unsigned int idx=0; idx< jet.numberOfDaughters(); idx++){
+          m_qjetpart_pt.push_back(jet.daughter(idx)->pt());
+          m_qjetpart_eta.push_back(jet.daughter(idx)->eta());
+          m_qjetpart_phi.push_back(jet.daughter(idx)->phi());
+          m_qjetpart_charge.push_back(jet.daughter(idx)->charge());
+          m_qjetpart_qjetIdx.push_back(m_qjets);
+          m_qjetpart_pdgId.push_back(jet.daughter(idx)->pdgId());
+      }
+    }
+    m_qjets+=1;
   } // end of looping over the jets
 
   // loop over the jets
@@ -667,8 +696,16 @@ GenBNtuplizer::beginJob()
    tree_->Branch("jet_vz", &m_jet_vz);
    tree_->Branch("jet_ntrk", &m_jet_ntrk);
    tree_->Branch("jet_npf", &m_jet_npf);
-   tree_->Branch("jetpart_jetIdx", &m_jetpart_jetIdx);
 
+
+   tree_->Branch("qjetpart_qjetIdx", &m_qjetpart_qjetIdx);
+   tree_->Branch("qjetpart_pt", &m_qjetpart_pt);
+   tree_->Branch("qjetpart_eta", &m_qjetpart_eta);
+   tree_->Branch("qjetpart_phi", &m_qjetpart_phi);
+   tree_->Branch("qjetpart_charge", &m_qjetpart_charge);
+   tree_->Branch("qjetpart_pdgId", &m_qjetpart_pdgId);
+
+   tree_->Branch("jetpart_jetIdx", &m_jetpart_jetIdx);
    tree_->Branch("jetpart_pt", &m_jetpart_pt);
    tree_->Branch("jetpart_eta", &m_jetpart_eta);
    tree_->Branch("jetpart_phi", &m_jetpart_phi);
