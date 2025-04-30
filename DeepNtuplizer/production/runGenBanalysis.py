@@ -8,8 +8,8 @@ import sys
 options = VarParsing.VarParsing()
 
 options.register('inputScript','',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"input Script")
-options.register('outputFile','outputSelectedPat',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
-options.register('maxEvents', 1001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
+options.register('outputFile','outputSignalBkgPVQual4_pt0p75_dz1',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
+options.register('maxEvents', 10001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
@@ -26,18 +26,20 @@ release=os.environ['CMSSW_VERSION'][6:]
 print("Using release "+release)
 
 
-#inputFiles =[ 'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,250)]
+inputFiles =[ 'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,250)]
 
-inputFiles = ['/store/mc/RunIII2024Summer24MiniAOD/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/MINIAODSIM/140X_mcRun3_2024_realistic_v26-v2/100000/001b1bf1-e811-4ec1-94ff-fa8a45fb629f.root']
+#inputFiles = ['/store/mc/RunIII2024Summer24MiniAOD/TTto4Q_TuneCP5_13p6TeV_powheg-pythia8/MINIAODSIM/140X_mcRun3_2024_realistic_v26-v2/100000/001b1bf1-e811-4ec1-94ff-fa8a45fb629f.root']
 
 if hasattr(sys, "argv"):
     options.parseArguments()
 
-UsePuppiReclusterForStdJet=False
-UsePFReclusterForStdJet=False
-UseSlimmedForStdJet=True
+
 UsePuppiForTrkJet=False
-UsePFRForTrkJet=False
+UsePFForTrkJet=True
+
+UsePuppiReclusterForStdJet=False
+UsePFReclusterForStdJet=True
+UseSlimmedForStdJet=False
 
 
 if (not UsePuppiReclusterForStdJet) and (not UsePFReclusterForStdJet) and (not UseSlimmedForStdJet):
@@ -46,6 +48,14 @@ if (not UsePuppiReclusterForStdJet) and (not UsePFReclusterForStdJet) and (not U
 
 if (UsePuppiReclusterForStdJet + UsePFReclusterForStdJet + UseSlimmedForStdJet)>1:
    print("too many std jet")
+   exit()
+
+if (not UsePuppiForTrkJet) and (not UsePFForTrkJet):
+   print("provide track jet")
+   exit()
+
+if (UsePFForTrkJet + UsePuppiForTrkJet)>1:
+   print("too many track jet")
    exit()
 
 process = cms.Process("DNNFiller")
@@ -206,12 +216,15 @@ if UsePFReclusterForStdJet:
 #### filter charged PF cands
 addProcessAndTask(process, "packedPFCandidatesChg",cms.EDFilter("CandPtrSelector",
      src = cms.InputTag("packedPFCandidates"),
-     cut = cms.string("charge != 0")
+     cut = cms.string("charge != 0 && pvAssociationQuality>3 && pt>0.75 && dz<1.0")
      )
 )
+#pvAssociationQuality=6 fitloose
+#pvAssociationQuality=7 fittight
+#pvAssociationQuality=4 btag
 
 ############################## PF trkjet ###################################
-if UsePFRForTrkJet:
+if UsePFForTrkJet:
    addProcessAndTask(process, "ak4PFChgJets", ak4PFJets.clone(
             src = "packedPFCandidatesChg",
             jetPtMin=5,
@@ -238,7 +251,7 @@ if UsePFRForTrkJet:
    updateJetCollection(
         process,
         labelName = "AK4PFChgR",
-        jetSource = cms.InputTag("patJetsAK4PFChg"),
+        jetSource = cms.InputTag("selectedPatJetsAK4PFChg"),
         pfCandidates = cms.InputTag('packedPFCandidates'),
         pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
         svSource = cms.InputTag('slimmedSecondaryVertices'),
@@ -262,8 +275,8 @@ if UsePuppiForTrkJet:
 
   addJetCollection(
       process,
-      labelName          = "AK4PuppiChgJets",
-      jetSource          = cms.InputTag("ak4PFJetsPuppiChgJets"),
+      labelName          = "AK4PuppiChg",
+      jetSource          = cms.InputTag("ak4PuppiChgJets"),
       algo               = "AK", #name of algo must be in this format
       rParam             = 0.4,
       pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -275,13 +288,14 @@ if UsePuppiForTrkJet:
       genParticles       = cms.InputTag("prunedGenParticles"),
       jetCorrections     = jetCorrectionsAK4,
   )
-  process.selectedPatJetsAK4PuppiChgJets.getJetMCFlavour = True
-  getattr(process, "selectedPatJetFlavourAssociationAK4PuppiChgJets").weights = cms.InputTag("puppi")
+
+  process.patJetsAK4PuppiChg.getJetMCFlavour = True
+  getattr(process, "patJetFlavourAssociationAK4PuppiChg").weights = cms.InputTag("puppi")
 
   updateJetCollection(
         process,
-        labelName = "AK4PuppiR",
-        jetSource = cms.InputTag("patJetsAK4PuppiChgJets"),  # 'ak4Jets'
+        labelName = "AK4PuppiChgR",
+        jetSource = cms.InputTag("selectedPatJetsAK4PuppiChg"),  # 'ak4Jets'
         jetCorrections = jetCorrectionsAK4,
         pfCandidates = cms.InputTag('packedPFCandidates'),
         pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
@@ -294,44 +308,17 @@ if UsePuppiForTrkJet:
   )
 
 
-   addJetCollection(
-      process,
-      labelName          = "AK4PFChg",
-      jetSource          = cms.InputTag("ak4PFChgJets"),
-      algo               = "ak", #name of algo must be in this format
-      rParam             = 0.4,
-      pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
-      pfCandidates       = cms.InputTag("packedPFCandidates"),
-      svSource           = cms.InputTag("slimmedSecondaryVertices"),
-      muSource           = cms.InputTag("slimmedMuons"),
-      elSource           = cms.InputTag("slimmedElectrons"),
-      genJetCollection   = cms.InputTag("ak4GenJetsRecluster"),
-      genParticles       = cms.InputTag("prunedGenParticles"),
-      jetCorrections     = None ,
-   )
-
-   updateJetCollection(
-        process,
-        labelName = "AK4PFChgR",
-        jetSource = cms.InputTag("patJetsAK4PFChg"),
-        pfCandidates = cms.InputTag('packedPFCandidates'),
-        pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
-        svSource = cms.InputTag('slimmedSecondaryVertices'),
-        muSource = cms.InputTag('slimmedMuons'),
-        elSource = cms.InputTag('slimmedElectrons'),
-        jetCorrections = None,
-        btagDiscriminators = None,
-        btagInfos = None,
-        explicitJTA = False
-   )
 
 
-
-if UsePFRForTrkJet:
+if UsePFForTrkJet:
    options.outputFile+="PFCvs"
+   trk_jet_collection = 'selectedUpdatedPatJetsAK4PFChgR'
+if UsePuppiForTrkJet:
+   options.outputFile+="PupCvs"
+   trk_jet_collection = 'selectedUpdatedPatJetsAK4PuppiChgR'
 
 if UseSlimmedForStdJet:
-   std_jet_collection = "slimmedJets"
+   std_jet_collection = "slimmedJetsPuppi"
    options.outputFile+="Slimmed"
 if UsePFReclusterForStdJet:
    std_jet_collection = "selectedUpdatedPatJetsAK4PFR"
@@ -375,10 +362,11 @@ process.TFileService = cms.Service("TFileService",
 
 # GenBanalyzer
 process.load("DeepNTuples.DeepNtuplizer.GenBanalysis_cfi")
-process.genbanalizer.pfChargedJets = cms.InputTag('selectedUpdatedPatJetsAK4PFChgR')
+process.genbanalizer.pfChargedJets = cms.InputTag(trk_jet_collection)
 process.genbanalizer.jets = cms.InputTag(std_jet_collection)
 process.genbanalizer.writeJetPart = cms.bool(True)
-process.genbanalizer.writePFcands = cms.bool(True)
+process.genbanalizer.writeChgJetPart = cms.bool(True)
+process.genbanalizer.writePFcands = cms.bool(False)
 
 
 #1631

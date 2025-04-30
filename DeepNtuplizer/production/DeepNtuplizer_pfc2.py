@@ -9,7 +9,7 @@ options = VarParsing.VarParsing()
 
 options.register('inputScript','',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"input Script")
 options.register('outputFile','output',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
-options.register('maxEvents', 50001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
+options.register('maxEvents', -1,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
 options.register('nJobs', 1, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "total jobs")
@@ -80,7 +80,8 @@ if options.nJobs > 1:
     print ("running over these files:")
     print (process.source.fileNames)
 
-process.source.fileNames = [ 'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
+process.source.fileNames =  cms.untracked.vstring([ 'file:/eos/cms//store/cmst3/group/softJets/common/signal_samples_140X/chain_m70_dm20_cfgRun24_140X_Run2024_test_03062025/Mini/job_100_step4.root' ]) 
+#'file:/eos/cms/store/cmst3/group/softJets/gkaratha/chain_m70_dm20_cfgRun24_133X_Run2024_test_10172024/Mini/chain_m70_dm20_'+str(i)+'_step5_mini.root' for i in range(1,50)]
 
 process.source.skipEvents = cms.untracked.uint32(options.skipEvents)
 process.maxEvents  = cms.untracked.PSet( 
@@ -179,7 +180,7 @@ jetCollectionRecluster = ""
 
 
 if not usePuppi:
-   jetCorrectionsAK4 = ('AK4PFchs', ['L1FastJet', 'L2Relative', 'L3Absolute'], 'None')
+   jetCorrectionsAK4 = ('AK4PFchs', [], 'None')
    addProcessAndTask(process, "packedPFCandidatesChg",cms.EDFilter("CandPtrSelector",
         src = cms.InputTag("packedPFCandidates"),
         cut = cms.string("charge != 0 && pvAssociationQuality>3")
@@ -281,7 +282,7 @@ else:
     process.updatedPatJetsTransientCorrectedAK4PuppiFinal.addTagInfos = cms.bool(True) 
     process.updatedPatJetsTransientCorrectedAK4PuppiFinal.addBTagInfo = cms.bool(True)
   else:
-    raise ValueError('I could not find updatedPatJetsTransientCorrectedDeepFlavour to embed the tagInfos, please check the cfg')
+    raise ValueError('I could not find updatedPatJetsTransientCorrectedPuppi to embed the tagInfos, please check the cfg')
 
 
 
@@ -304,7 +305,7 @@ process.ak4GenChargedJetsRecluster = ak4GenJets.clone(src = 'packedGenChargedPar
 
 process.patGenJetMatchAllowDuplicates = cms.EDProducer("GenJetMatcher",  # cut on deltaR; pick best by deltaR           
     src         = cms.InputTag(jetCollectionRecluster),      # RECO jets (any View<Jet> is ok) 
-    matched     = cms.InputTag("ak4GenJetsWithNu"),        # GEN jets  (must be GenJetCollection)              
+    matched     = cms.InputTag("ak4GenChargedJetsRecluster"),        # GEN jets  (must be GenJetCollection)              
     mcPdgId     = cms.vint32(),                      # n/a   
     mcStatus    = cms.vint32(),                      # n/a   
     checkCharge = cms.bool(False),                   # n/a   

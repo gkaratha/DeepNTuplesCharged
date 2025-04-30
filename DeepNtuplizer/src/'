@@ -143,7 +143,6 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"gen_particle_daughters_mass", &gen_particle_daughters_mass_, "gen_particle_daughters_mass_[gend_number_]/F");
     addBranch(tree,"gen_particle_daughters_status", &gen_particle_daughters_status_, "gen_particle_daughters_status_[gend_number_]/F");
     addBranch(tree,"gen_particle_daughters_charge", &gen_particle_daughters_charge_, "gen_particle_daughters_charge_[gend_number_]/F");
-    addBranch(tree,"nGenBmeson", &nGenBmeson_);
     addBranch(tree,"genBmeson_daughter_pt", &genBmeson_daughter_pt_);
     addBranch(tree,"genBmeson_daughter_eta", &genBmeson_daughter_eta_);
     addBranch(tree,"genBmeson_daughter_phi", &genBmeson_daughter_phi_);
@@ -152,7 +151,6 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"genBmeson_pt", &genBmeson_pt_);
     addBranch(tree,"genBmeson_eta", &genBmeson_daughter_eta_);
     addBranch(tree,"genBmeson_phi", &genBmeson_daughter_phi_);
-    addBranch(tree,"nGenCmeson", &nGenCmeson_);
     addBranch(tree,"genCmeson_daughter_pt", &genCmeson_daughter_pt_);
     addBranch(tree,"genCmeson_daughter_eta", &genCmeson_daughter_eta_);
     addBranch(tree,"genCmeson_daughter_phi", &genCmeson_daughter_phi_);
@@ -161,21 +159,15 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"genCmeson_pt", &genCmeson_pt_);
     addBranch(tree,"genCmeson_eta", &genCmeson_daughter_eta_);
     addBranch(tree,"genCmeson_phi", &genCmeson_daughter_phi_);
-    addBranch(tree,"nConstituent", &nConstituent_);
-    addBranch(tree,"constituent_pt", &constituent_pt_);
-    addBranch(tree,"constituent_eta", &constituent_eta_);
-    addBranch(tree,"constituent_phi", &constituent_phi_);
-    addBranch(tree,"constituent_pdgId", &constituent_pdgId_);
-    addBranch(tree,"constituent_BdaughterDr", &constituent_BdaughterDr_);
-    addBranch(tree,"constituent_BdaughterIdx",  &constituent_BdaughterIdx_);
-    addBranch(tree,"constituent_CdaughterDr", &constituent_CdaughterDr_);
-    addBranch(tree,"constituent_CdaughterIdx",  &constituent_CdaughterIdx_);
-    addBranch(tree,"nMatchedDaughtersB", &nMatchedDaughtersB_);
-    addBranch(tree,"nMatchedDaughtersC", &nMatchedDaughtersC_);
+    addBranch(tree,"daughter_pt", &daughter_pt_);
+    addBranch(tree,"daughter_eta", &daughter_eta_);
+    addBranch(tree,"daughter_phi", &daughter_phi_);
+    addBranch(tree,"daughter_pdgId", &daughter_pdgId_);
+    addBranch(tree,"daughter_dr", &daughter_dr_);
+    addBranch(tree,"daughter_genIdx",  &daughter_genIdx_);
+    addBranch(tree,"nMatchedDaughters", &nMatchedDaughters_);
     addBranch(tree,"isMatchedB", &isMatchedB_);
     addBranch(tree,"isMatchedBB", &isMatchedBB_);
-    addBranch(tree,"isMatchedC", &isMatchedC_);
-    addBranch(tree,"isMatchedBAndC", &isMatchedBAndC_);
     addBranch(tree,"isNotMatched", &isNotMatched_);
     addBranch(tree,"isMatchedB1d", &isMatchedB1d_);
     addBranch(tree,"isMatchedB2d", &isMatchedB2d_);
@@ -184,19 +176,6 @@ void ntuple_JetInfo::initBranches(TTree* tree){
     addBranch(tree,"isMatchedBB2d", &isMatchedBB2d_);
     addBranch(tree,"isMatchedBB3d", &isMatchedBB3d_);
     addBranch(tree,"isMatchedBBMore4d", &isMatchedBBMore4d_);
-    addBranch(tree,"isMatchedC1d", &isMatchedC1d_);
-    addBranch(tree,"isMatchedC2d", &isMatchedC2d_);
-    addBranch(tree,"isMatchedC3d", &isMatchedC3d_);
-    addBranch(tree,"isMatchedCMore3d", &isMatchedCMore3d_);
-    addBranch(tree,"isMatchedB1dC1d", &isMatchedB1dC1d_);
-    addBranch(tree,"isMatchedB2dC1d", &isMatchedB2dC1d_);
-    addBranch(tree,"isMatchedBMore2dC1d", &isMatchedBMore2dC1d_);
-    addBranch(tree,"isMatchedB1dC2d", &isMatchedB1dC2d_);
-    addBranch(tree,"isMatchedB2dC2d", &isMatchedB2dC2d_);
-    addBranch(tree,"isMatchedBMore2dC2d", &isMatchedBMore2dC2d_);
-    addBranch(tree,"isMatchedB1dCMore2d", &isMatchedB1dCMore2d_);
-    addBranch(tree,"isMatchedB2dCMore2d", &isMatchedB2dCMore2d_);
-    addBranch(tree,"isMatchedBMore2dCMore2d", &isMatchedBMore2dCMore2d_);
 
 
 
@@ -278,23 +257,17 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
     genCmeson_phi_.clear();
     genCmeson_pdgId_.clear();
 
-    constituent_pt_.clear();
-    constituent_eta_.clear();
-    constituent_phi_.clear();
-    constituent_pdgId_.clear();
-    constituent_BdaughterDr_.clear();
-    constituent_BdaughterIdx_.clear();
-    constituent_CdaughterDr_.clear();
-    constituent_CdaughterIdx_.clear();
+    daughter_pt_.clear();
+    daughter_eta_.clear();
+    daughter_phi_.clear();
+    daughter_pdgId_.clear();
+    daughter_dr_.clear();
+    daughter_genIdx_.clear();
 
-    nMatchedDaughtersB_=0;
-    nMatchedDaughtersC_=0;
+    nMatchedDaughters_=0;
     isMatchedB_=0;
     isMatchedBB_=0;
     isNotMatched_=0;
-    isMatchedC_=0;
-    isMatchedBAndC_=0;
-
     isMatchedB1d_=0;
     isMatchedB2d_=0;
     isMatchedB3d_=0;
@@ -303,23 +276,6 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
     isMatchedBB3d_=0;
     isMatchedBB4d_=0;
     isMatchedBBMore4d_=0;
-    nConstituent_=0;
-    nGenBmeson_=0;
-    nGenCmeson_=0;
-    isMatchedC1d_=0;
-    isMatchedC2d_=0;
-    isMatchedC3d_=0;
-    isMatchedCMore3d_=0;
-    isMatchedB1dC1d_=0;
-    isMatchedB2dC1d_=0;
-    isMatchedBMore2dC1d_=0;
-    isMatchedB1dC2d_=0;
-    isMatchedB2dC2d_=0;
-    isMatchedBMore2dC2d_=0;
-    isMatchedB1dCMore2d_=0;
-    isMatchedB2dCMore2d_=0;
-    isMatchedBMore2dCMore2d_=0;
-
 
 
     jetv_gen_wnu.clear();
@@ -441,8 +397,7 @@ void ntuple_JetInfo::readEvent(const edm::Event& iEvent){
          }  
       } // else fromB
   } //loop on gen parts 
-  nGenBmeson_=genBmeson_daughter_pt_.size();
-  nGenCmeson_=genCmeson_daughter_pt_.size();
+
   for (const reco::Candidate &genC : *genParticlesHandle) {
         const reco::GenParticle &gen = static_cast< const reco::GenParticle &>(genC);
         if(abs(gen.pdgId())==12||abs(gen.pdgId())==14||abs(gen.pdgId())==16) {
@@ -977,126 +932,63 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
 
     //2nd matching
-    constituent_pt_.clear();
-    constituent_eta_.clear();
-    constituent_phi_.clear();
-    constituent_pdgId_.clear();
-    constituent_BdaughterDr_.clear();
-    constituent_BdaughterIdx_.clear();
-    constituent_CdaughterDr_.clear();
-    constituent_CdaughterIdx_.clear();
-
+    daughter_pt_.clear();
+    daughter_eta_.clear();
+    daughter_phi_.clear();
+    daughter_pdgId_.clear();
+    daughter_dr_.clear();
+    daughter_genIdx_.clear();
     std::vector<int> matchedB;
-    nMatchedDaughtersB_=0;
-    nMatchedDaughtersC_=0;
-    nConstituent_=jet.numberOfDaughters();
+    nMatchedDaughters_=0;
     for (unsigned int ireco=0; ireco< jet.numberOfDaughters(); ireco++){
        float minDR=100;
        float minIdx=-1;
-       for (unsigned int igen=0; igen< genBmeson_daughter_pdgId_.size(); igen++){
-         float tempDR=deltaR(genBmeson_daughter_eta_[igen],genBmeson_daughter_phi_[igen],jet.daughter(ireco)->eta(),jet.daughter(ireco)->phi());
+       for (unsigned int igen=0; igen< formatch_genpart_pdgId_.size(); igen++){
+         float tempDR=deltaR(formatch_genpart_eta_[igen],formatch_genpart_phi_[igen],jet.daughter(ireco)->eta(),jet.daughter(ireco)->phi());
          if (minDR<tempDR ) 
             continue;
          minDR = tempDR;
          minIdx = igen;
        }
-       constituent_pt_.push_back(jet.daughter(ireco)->pt());
-       constituent_eta_.push_back(jet.daughter(ireco)->eta());
-       constituent_phi_.push_back(jet.daughter(ireco)->phi());
-       constituent_pdgId_.push_back(jet.daughter(ireco)->pdgId());
+       daughter_pt_.push_back(jet.daughter(ireco)->pt());
+       daughter_eta_.push_back(jet.daughter(ireco)->eta());
+       daughter_phi_.push_back(jet.daughter(ireco)->phi());
+       daughter_pdgId_.push_back(jet.daughter(ireco)->pdgId());
        if (minDR<0.05){
-         nMatchedDaughtersB_+=1;
+         nMatchedDaughters_+=1;
          if (std::find(matchedB.begin(),matchedB.end(),minIdx) == matchedB.end())
             matchedB.push_back(minIdx);
-         constituent_BdaughterDr_.push_back(minDR);
-         constituent_BdaughterIdx_.push_back(minIdx);
-         constituent_CdaughterDr_.push_back(10);
-         constituent_CdaughterIdx_.push_back(-1);
-       } else{
-         constituent_BdaughterDr_.push_back(10);
-         constituent_BdaughterIdx_.push_back(-1);
-         minDR=100;
-         minIdx=-1;
-         for (unsigned int igen=0; igen< genCmeson_daughter_pdgId_.size(); igen++){
-            float tempDR=deltaR(genCmeson_daughter_eta_[igen],genCmeson_daughter_phi_[igen],jet.daughter(ireco)->eta(),jet.daughter(ireco)->phi());
-            if (minDR<tempDR )
-               continue;
-            minDR = tempDR;
-            minIdx = igen;
-         }
-         if (minDR<0.05){
-            nMatchedDaughtersC_+=1;
-            constituent_CdaughterDr_.push_back(minDR);
-            constituent_CdaughterIdx_.push_back(minIdx);
-         } else{
-            constituent_CdaughterDr_.push_back(10);
-            constituent_CdaughterIdx_.push_back(-1);
-         }
        }
+       daughter_dr_.push_back(minDR);
+       daughter_genIdx_.push_back(minIdx);
     }
-
     isMatchedBB_=0;
     isMatchedB_=0;
     isNotMatched_=0;
-    isMatchedC_=0;    
-    isMatchedBAndC_=0;
-    if (nMatchedDaughtersB_>0 and nMatchedDaughtersC_==0 and matchedB.size()>1) isMatchedBB_=1;
-    if (nMatchedDaughtersB_>0 and nMatchedDaughtersC_==0 and matchedB.size()==1) isMatchedB_=1; 
-    if (nMatchedDaughtersB_==0 and nMatchedDaughtersC_>0) isMatchedC_=1;
-    if (nMatchedDaughtersB_>0 and nMatchedDaughtersC_>0) isMatchedBAndC_=1;
-    if (nMatchedDaughtersB_==0 and nMatchedDaughtersC_==0) isNotMatched_=1;
+    if (nMatchedDaughters_>0 and matchedB.size()>1) isMatchedBB_=1;
+    if (nMatchedDaughters_>0 and matchedB.size()==1) isMatchedB_=1; 
+    if (nMatchedDaughters_==0) isNotMatched_=1;
 
     isMatchedB1d_=0;
     isMatchedB2d_=0;
     isMatchedB3d_=0;
     isMatchedBMore3d_=0;
-    if (matchedB.size()==1 and isMatchedBAndC_==0){
-       if (nMatchedDaughtersB_==1) isMatchedB1d_=1;
-       else if (nMatchedDaughtersB_==2) isMatchedB2d_=1;
-       else if (nMatchedDaughtersB_==3) isMatchedB3d_=1;
-       else if (nMatchedDaughtersB_>3) isMatchedBMore3d_=1;
+    if (matchedB.size()==1){
+       if (nMatchedDaughters_==1) isMatchedB1d_=1;
+       else if (nMatchedDaughters_==2) isMatchedB2d_=1;
+       else if (nMatchedDaughters_==3) isMatchedB3d_=1;
+       else if (nMatchedDaughters_>3) isMatchedBMore3d_=1;
     }
     
     isMatchedBB2d_=0;
     isMatchedBB3d_=0;
     isMatchedBB4d_=0;
     isMatchedBBMore4d_=0;
-    if (matchedB.size()>1  and isMatchedBAndC_==0){
-       if (nMatchedDaughtersB_==2) isMatchedBB2d_=1;
-       else if (nMatchedDaughtersB_==3) isMatchedBB3d_=1;
-       else if (nMatchedDaughtersB_==4) isMatchedBB4d_=1;
-       else if (nMatchedDaughtersB_>4) isMatchedBBMore4d_=1;
-    }
-
-    isMatchedC1d_=0;
-    isMatchedC2d_=0;
-    isMatchedC3d_=0;
-    isMatchedCMore3d_=0;
-    if (nMatchedDaughtersC_==1 and isMatchedBAndC_==0) isMatchedC1d_=1;
-    else if (nMatchedDaughtersC_==2 and isMatchedBAndC_==0) isMatchedC2d_=1;
-    else if (nMatchedDaughtersC_==3 and isMatchedBAndC_==0) isMatchedC3d_=1;
-    else if (nMatchedDaughtersC_>3 and isMatchedBAndC_==0) isMatchedCMore3d_=1;
-   
-
-    isMatchedB1dC1d_=0;
-    isMatchedB2dC1d_=0;
-    isMatchedBMore2dC1d_=0;
-    isMatchedB1dC2d_=0;
-    isMatchedB2dC2d_=0;
-    isMatchedBMore2dC2d_=0;
-    isMatchedB1dCMore2d_=0;
-    isMatchedB2dCMore2d_=0;
-    isMatchedBMore2dCMore2d_=0;    
-    if ( isMatchedBAndC_>0){
-      if (nMatchedDaughtersB_==1 and nMatchedDaughtersC_==1) isMatchedB1dC1d_=1;
-      else if (nMatchedDaughtersB_==2 and nMatchedDaughtersC_==1) isMatchedB2dC1d_=1;
-      else if (nMatchedDaughtersB_>2 and nMatchedDaughtersC_==1) isMatchedBMore2dC1d_=1;
-      else if (nMatchedDaughtersB_==1 and nMatchedDaughtersC_==2) isMatchedB1dC2d_=1;
-      else if (nMatchedDaughtersB_==2 and nMatchedDaughtersC_==2) isMatchedB2dC2d_=1;
-      else if (nMatchedDaughtersB_>2 and nMatchedDaughtersC_==2) isMatchedBMore2dC2d_=1;
-      else if (nMatchedDaughtersB_==1 and nMatchedDaughtersC_>2) isMatchedB1dCMore2d_=1;
-      else if (nMatchedDaughtersB_==2 and nMatchedDaughtersC_>2) isMatchedB2dCMore2d_=1;
-      else if (nMatchedDaughtersB_>2 and nMatchedDaughtersC_>2) isMatchedBMore2dCMore2d_=1;
+    if (matchedB.size()>1){
+       if (nMatchedDaughters_==2) isMatchedBB2d_=1;
+       else if (nMatchedDaughters_==3) isMatchedBB3d_=1;
+       else if (nMatchedDaughters_==4) isMatchedBB4d_=1;
+       else if (nMatchedDaughters_>4) isMatchedBBMore4d_=1;
     }
 
 

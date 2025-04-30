@@ -7,8 +7,8 @@ TChain * cc_slimmed = new TChain("genbanalizer/tree");
 TChain * cc_puppi = new TChain("genbanalizer/tree");
 
 
-cc_slimmed->Add("outputSelectedPatPFCvsSlimmed_0.root");
-cc_puppi->Add("outputSelectedPatPFCvsPuppiRecluster_0.root");
+cc_slimmed->Add("outputSignalBkgPVQual4PFCvsSlimmed_0.root");
+cc_puppi->Add("outputSignalBkgPupCvsPuppiRecluster_0.root");
 
 
 jet_tree tree_slimmed;

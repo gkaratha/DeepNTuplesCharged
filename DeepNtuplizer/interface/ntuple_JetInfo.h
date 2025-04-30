@@ -165,6 +165,28 @@ public:
     std::vector<float>  gen_particle_daughters_mass;
     std::vector<int>    gen_particle_daughters_charge;
 
+    std::vector<float> genBmeson_daughter_pt_;
+    std::vector<float> genBmeson_daughter_eta_;
+    std::vector<float> genBmeson_daughter_phi_;
+    std::vector<float> genBmeson_daughter_pdgId_;
+    std::vector<float> genBmeson_daughter_mesonIdx_;
+    std::vector<float> genBmeson_pt_;
+    std::vector<float> genBmeson_eta_;
+    std::vector<float> genBmeson_phi_;
+    std::vector<float> genBmeson_pdgId_;
+
+
+    std::vector<float> genCmeson_daughter_pt_;
+    std::vector<float> genCmeson_daughter_eta_;
+    std::vector<float> genCmeson_daughter_phi_;
+    std::vector<float> genCmeson_daughter_pdgId_;
+    std::vector<float> genCmeson_daughter_mesonIdx_;
+    std::vector<float> genCmeson_pt_;
+    std::vector<float> genCmeson_eta_;
+    std::vector<float> genCmeson_phi_;
+    std::vector<float> genCmeson_pdgId_;
+
+
     // Gen leptons from resonance decay 
     std::vector<TLorentzVector> genLepFromResonance4V_;
     std::vector<TLorentzVector> genMuonsFromResonance4V_;
@@ -324,7 +346,7 @@ public:
     int gen_number_;
     int gend_number_;
 
-    float gen_particle_pt_[max_num_gen_];
+  float gen_particle_pt_[max_num_gen_];
   float gen_particle_eta_[max_num_gen_];
   float gen_particle_phi_[max_num_gen_];
   float gen_particle_mass_[max_num_gen_];
@@ -338,6 +360,50 @@ public:
   float gen_particle_daughters_mass_[max_num_gen_];
   float gen_particle_daughters_status_[max_num_gen_];
   float gen_particle_daughters_charge_[max_num_gen_];
+
+  std::vector<float> constituent_pt_;
+  std::vector<float> constituent_eta_;
+  std::vector<float> constituent_phi_;
+  std::vector<float> constituent_pdgId_;
+  std::vector<float> constituent_BdaughterDr_;
+  std::vector<float> constituent_BdaughterIdx_;
+  std::vector<float> constituent_CdaughterDr_;
+  std::vector<float> constituent_CdaughterIdx_;
+  
+
+  int nConstituent_=0;
+  int nGenBmeson_=0;
+  int nGenCmeson_=0;
+  int nMatchedDaughtersB_=0;
+  int nMatchedDaughtersC_=0;
+  int isMatchedB_=0;
+  int isMatchedBB_=0;
+  int isMatchedC_=0;
+  int isMatchedBAndC_=0;
+  int isNotMatched_=0;
+  int isMatchedB1d_=0;
+  int isMatchedB2d_=0;
+  int isMatchedB3d_=0;
+  int isMatchedBMore3d_=0;
+  int isMatchedBB2d_=0;
+  int isMatchedBB3d_=0;
+  int isMatchedBB4d_=0;
+  int isMatchedBBMore4d_=0;
+  int isMatchedC1d_=0;
+  int isMatchedC2d_=0;
+  int isMatchedC3d_=0;
+  int isMatchedCMore3d_=0;
+  int isMatchedB1dC1d_=0;
+  int isMatchedB2dC1d_=0;
+  int isMatchedBMore2dC1d_=0;
+  int isMatchedB1dC2d_=0;
+  int isMatchedB2dC2d_=0;
+  int isMatchedBMore2dC2d_=0;
+  int isMatchedB1dCMore2d_=0;
+  int isMatchedB2dCMore2d_=0;
+  int isMatchedBMore2dCMore2d_=0;
+
+
 
 };
 

@@ -43,3 +43,4 @@ deepntuplizer = cms.EDAnalyzer('DeepNtuplizer',
                                 useOffsets=cms.bool(True),
                                 applySelection=cms.bool(False)
                                 )
+

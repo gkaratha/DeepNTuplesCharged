@@ -1,8 +1,8 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Sat Feb  1 17:30:01 2025 by ROOT version 6.30/03
+// Mon Feb 17 13:23:34 2025 by ROOT version 6.30/03
 // from TTree tree/tree
-// found on file: output1p5cPFCvsPuppiRecluster_0.root
+// found on file: outputSignalBkgPVQual4PFCvsPFRecluster_0.root
 //////////////////////////////////////////////////////////
 
 #ifndef jet_tree_h
@@ -47,6 +47,12 @@ public :
    vector<float>   *jet_vz;
    vector<float>   *jet_ntrk;
    vector<float>   *jet_npf;
+   vector<int>     *qjetpart_qjetIdx;
+   vector<float>   *qjetpart_pt;
+   vector<float>   *qjetpart_eta;
+   vector<float>   *qjetpart_phi;
+   vector<float>   *qjetpart_charge;
+   vector<int>     *qjetpart_pdgId;
    vector<int>     *jetpart_jetIdx;
    vector<float>   *jetpart_pt;
    vector<float>   *jetpart_eta;
@@ -146,6 +152,12 @@ public :
    TBranch        *b_jet_vz;   //!
    TBranch        *b_jet_ntrk;   //!
    TBranch        *b_jet_npf;   //!
+   TBranch        *b_qjetpart_qjetIdx;   //!
+   TBranch        *b_qjetpart_pt;   //!
+   TBranch        *b_qjetpart_eta;   //!
+   TBranch        *b_qjetpart_phi;   //!
+   TBranch        *b_qjetpart_charge;   //!
+   TBranch        *b_qjetpart_pdgId;   //!
    TBranch        *b_jetpart_jetIdx;   //!
    TBranch        *b_jetpart_pt;   //!
    TBranch        *b_jetpart_eta;   //!
@@ -225,6 +237,7 @@ public :
    virtual ~jet_tree();
    virtual Int_t    Cut(Long64_t entry);
    virtual Int_t    GetEntry(Long64_t entry);
+   virtual Int_t    GetEntries();
    virtual Long64_t LoadTree(Long64_t entry);
    virtual void     Init(TTree *tree);
    virtual Bool_t   Notify();
@@ -239,6 +252,13 @@ jet_tree::jet_tree(TTree *tree) : fChain(0)
 jet_tree::~jet_tree()
 {
    if (!fChain) return;
+}
+
+Int_t jet_tree::GetEntries()
+{
+// Read contents of entry.
+   if (!fChain) return 0;
+   return fChain->GetEntries();
 }
 
 Int_t jet_tree::GetEntry(Long64_t entry)
@@ -292,6 +312,12 @@ void jet_tree::Init(TTree *tree)
    jet_vz = 0;
    jet_ntrk = 0;
    jet_npf = 0;
+   qjetpart_qjetIdx = 0;
+   qjetpart_pt = 0;
+   qjetpart_eta = 0;
+   qjetpart_phi = 0;
+   qjetpart_charge = 0;
+   qjetpart_pdgId = 0;
    jetpart_jetIdx = 0;
    jetpart_pt = 0;
    jetpart_eta = 0;
@@ -394,6 +420,12 @@ void jet_tree::Init(TTree *tree)
    fChain->SetBranchAddress("jet_vz", &jet_vz, &b_jet_vz);
    fChain->SetBranchAddress("jet_ntrk", &jet_ntrk, &b_jet_ntrk);
    fChain->SetBranchAddress("jet_npf", &jet_npf, &b_jet_npf);
+   fChain->SetBranchAddress("qjetpart_qjetIdx", &qjetpart_qjetIdx, &b_qjetpart_qjetIdx);
+   fChain->SetBranchAddress("qjetpart_pt", &qjetpart_pt, &b_qjetpart_pt);
+   fChain->SetBranchAddress("qjetpart_eta", &qjetpart_eta, &b_qjetpart_eta);
+   fChain->SetBranchAddress("qjetpart_phi", &qjetpart_phi, &b_qjetpart_phi);
+   fChain->SetBranchAddress("qjetpart_charge", &qjetpart_charge, &b_qjetpart_charge);
+   fChain->SetBranchAddress("qjetpart_pdgId", &qjetpart_pdgId, &b_qjetpart_pdgId);
    fChain->SetBranchAddress("jetpart_jetIdx", &jetpart_jetIdx, &b_jetpart_jetIdx);
    fChain->SetBranchAddress("jetpart_pt", &jetpart_pt, &b_jetpart_pt);
    fChain->SetBranchAddress("jetpart_eta", &jetpart_eta, &b_jetpart_eta);
