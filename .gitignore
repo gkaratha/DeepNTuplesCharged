@@ -5,4 +5,8 @@
 *.root
 #*.*#
 *.pyc
+*.root
+*.png
+.__afs*
+.*sw*
 __init__.py

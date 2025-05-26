@@ -104,6 +104,7 @@ public:
     double                    jetPtMax_;
     double                    jetAbsEtaMin_;
     double                    jetAbsEtaMax_;
+    bool                      SkipPU_;
 
     //Quark gluon likelihood
     edm::EDGetTokenT<edm::ValueMap<float>>   qglToken_;

@@ -7,8 +7,8 @@ TChain * cc_slimmed = new TChain("genbanalizer/tree");
 TChain * cc_puppi = new TChain("genbanalizer/tree");
 
 
-cc_slimmed->Add("outputSignalBkgPVQual4PFCvsSlimmed_0.root");
-cc_puppi->Add("outputSignalBkgPupCvsPuppiRecluster_0.root");
+cc_slimmed->Add("rungen_outputPupCvsSlimmed_0.root");
+cc_puppi->Add("rungen_outputPupCvsPuppiRecluster_0.root");
 
 
 jet_tree tree_slimmed;
@@ -70,6 +70,8 @@ TH1F* hpfpt_pi0 = new TH1F("hpfpt_pi0","",100,0,25);
 TH1F* hpfpt_g = new TH1F("hpfpt_g","",100,0,25);
 
 TH1F* hdr2 = new TH1F("hdr2","",100,0,1);
+
+
 
 
 for (int ievt=0; ievt<cc_puppi->GetEntries(); ievt++){

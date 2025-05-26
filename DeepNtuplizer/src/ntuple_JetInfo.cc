@@ -38,6 +38,7 @@ void ntuple_JetInfo::getInput(const edm::ParameterSet& iConfig){
     jetAbsEtaMin_=(iConfig.getParameter<double>("jetAbsEtaMin"));
     jetAbsEtaMax_=(iConfig.getParameter<double>("jetAbsEtaMax"));
     min_candidate_pt_ = (iConfig.getParameter<double>("minCandidatePt"));
+    SkipPU_ = (iConfig.getParameter<bool>("SkipPU"));
     
     vector<string> disc_names = iConfig.getParameter<vector<string> >("bDiscriminators");
     for(auto& name : disc_names) {
@@ -950,7 +951,9 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         default : isUndefined_=1; break;
         }
     }
-
+    if (SkipPU_ && isPU_) returnval=false; 
+       
+  //  std::cout<<"B "<<isB_<<" GBB "<<isGBB_<<" BB "<<isBB_<<" C "<<isC_<<" GCC "<<isGCC_<<" CC "<<isCC_<<" U "<< isU_<<" D "<<isD_<<" NU "<<isMU_<<" ELE "<<isELE_<<endl;
     //truth labeling with fallback to physics definition for light/gluon/undefined of standard flavor definition
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
     isPhysB_=0; isPhysBB_=0; isPhysGBB_=0; isPhysC_=0; isPhysCC_=0;

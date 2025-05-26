@@ -8,7 +8,7 @@ import sys
 options = VarParsing.VarParsing()
 
 options.register('inputScript','',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"input Script")
-options.register('outputFile','outputSignalBkgPVQual4_pt0p75_dz1',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
+options.register('outputFile','rungen_output',VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.string,"output File (w/o .root)")
 options.register('maxEvents', 10001,VarParsing.VarParsing.multiplicity.singleton,VarParsing.VarParsing.varType.int,"maximum events")
 options.register('skipEvents', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "skip N events")
 options.register('job', 0, VarParsing.VarParsing.multiplicity.singleton, VarParsing.VarParsing.varType.int, "job number")
@@ -35,26 +35,29 @@ if hasattr(sys, "argv"):
 
 
 UsePuppiForTrkJet=False
-UsePFForTrkJet=True
+UsePFForTrkJet=False
+UseCHSForTrkJet=True
 
 UsePuppiReclusterForStdJet=False
-UsePFReclusterForStdJet=True
+UsePFReclusterForStdJet=False
 UseSlimmedForStdJet=False
+UseCHSReclusterForStdJet=True
 
 
-if (not UsePuppiReclusterForStdJet) and (not UsePFReclusterForStdJet) and (not UseSlimmedForStdJet):
+
+if (not UsePuppiReclusterForStdJet) and (not UsePFReclusterForStdJet) and (not UseSlimmedForStdJet) and (not UseCHSReclusterForStdJet):
    print("provide std jet")
    exit()
 
-if (UsePuppiReclusterForStdJet + UsePFReclusterForStdJet + UseSlimmedForStdJet)>1:
+if (UsePuppiReclusterForStdJet + UsePFReclusterForStdJet + UseSlimmedForStdJet + UseCHSReclusterForStdJet)>1:
    print("too many std jet")
    exit()
 
-if (not UsePuppiForTrkJet) and (not UsePFForTrkJet):
+if (not UsePuppiForTrkJet) and (not UsePFForTrkJet) and (not UseCHSForTrkJet):
    print("provide track jet")
    exit()
 
-if (UsePFForTrkJet + UsePuppiForTrkJet)>1:
+if (UsePFForTrkJet + UsePuppiForTrkJet + UseCHSForTrkJet)>1:
    print("too many track jet")
    exit()
 
@@ -115,7 +118,7 @@ def addProcessAndTask(proc, label, module):
 
 from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJetsPuppi
 from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJets
-
+from RecoJets.JetProducers.ak4PFJets_cfi import ak4PFJetsCHS
 
 
 
@@ -169,6 +172,59 @@ if UsePuppiReclusterForStdJet:
   )
 
 
+################################# CHS recluster jets ########################
+if UseCHSReclusterForStdJet:
+   from CommonTools.ParticleFlow.pfNoPileUpJME_cff import primaryVertexAssociationJME
+
+   addProcessAndTask(process, "chsPFCandidates",cms.EDFilter("CandPtrSelector",
+     src = cms.InputTag("packedPFCandidates"),
+     cut = cms.string("fromPV(0)>0 || (vertexRef().key<={} && abs(dz(0))<{})".format(
+                  primaryVertexAssociationJME.assignment.NumOfPUVtxsForCharged.value(),
+                  primaryVertexAssociationJME.assignment.DzCutForChargedFromPUVtxs.value()))
+     )
+)
+
+
+   addProcessAndTask(process, "ak4PFJetsChsRecluster", ak4PFJets.clone(
+        src = "chsPFCandidates",
+        doAreaFastjet = True,
+        jetPtMin=5
+     )
+   )
+
+   addJetCollection(
+      process,
+      postfix            = "Recluster",
+      labelName          = "AK4Chs",
+      jetSource          = cms.InputTag("ak4PFJetsChsRecluster"),
+      algo               = "AK", #name of algo must be in this format
+      rParam             = 0.4,
+      pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      pfCandidates       = cms.InputTag("packedPFCandidates"),
+      svSource           = cms.InputTag("slimmedSecondaryVertices"),
+      muSource           = cms.InputTag("slimmedMuons"),
+      elSource           = cms.InputTag("slimmedElectrons"),
+      genJetCollection   = cms.InputTag("ak4GenJetsRecluster"), # This is setup below
+      genParticles       = cms.InputTag("prunedGenParticles"),
+      jetCorrections     = jetCorrectionsAK4,
+   )
+   updateJetCollection(
+        process,
+        labelName = "AK4ChsR",
+        jetSource = cms.InputTag("selectedPatJetsAK4ChsRecluster"),  # 'ak4Jets'
+        jetCorrections = jetCorrectionsAK4,
+        pfCandidates = cms.InputTag('packedPFCandidates'),
+        pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
+        svSource = cms.InputTag('slimmedSecondaryVertices'),
+        muSource = cms.InputTag('slimmedMuons'),
+        elSource = cms.InputTag('slimmedElectrons'),
+        btagInfos = None,
+        btagDiscriminators = None,
+        explicitJTA = False
+    )
+
+
+
 ################################# PF recluster jets #########################
 if UsePFReclusterForStdJet:
   addProcessAndTask(process, "ak4PFReclusterJets", ak4PFJets.clone(
@@ -216,7 +272,7 @@ if UsePFReclusterForStdJet:
 #### filter charged PF cands
 addProcessAndTask(process, "packedPFCandidatesChg",cms.EDFilter("CandPtrSelector",
      src = cms.InputTag("packedPFCandidates"),
-     cut = cms.string("charge != 0 && pvAssociationQuality>3 && pt>0.75 && dz<1.0")
+     cut = cms.string("charge != 0 && pvAssociationQuality>3")
      )
 )
 #pvAssociationQuality=6 fitloose
@@ -307,6 +363,56 @@ if UsePuppiForTrkJet:
         explicitJTA = False
   )
 
+############################## CHS trkjet ###################################
+if UseCHSForTrkJet:
+   from CommonTools.ParticleFlow.pfNoPileUpJME_cff import primaryVertexAssociationJME
+
+   addProcessAndTask(process, "chsPFCandidatesChg",cms.EDFilter("CandPtrSelector",
+     src = cms.InputTag("packedPFCandidates"),
+     cut = cms.string("charge != 0 && fromPV(0)>0 || (vertexRef().key<={} && abs(dz(0))<{})".format(
+                  primaryVertexAssociationJME.assignment.NumOfPUVtxsForCharged.value(),
+                  primaryVertexAssociationJME.assignment.DzCutForChargedFromPUVtxs.value()))
+     )
+)
+
+   addProcessAndTask(process, "ak4ChsChgJets", ak4PFJets.clone(
+            src = "chsPFCandidatesChg",
+            jetPtMin=5,
+            doAreaFastjet = True
+            )
+   )
+
+   addJetCollection(
+      process,
+      labelName          = "AK4ChsChg",
+      jetSource          = cms.InputTag("ak4ChsChgJets"),
+      algo               = "ak", #name of algo must be in this format
+      rParam             = 0.4,
+      pvSource           = cms.InputTag("offlineSlimmedPrimaryVertices"),
+      pfCandidates       = cms.InputTag("packedPFCandidates"),
+      svSource           = cms.InputTag("slimmedSecondaryVertices"),
+      muSource           = cms.InputTag("slimmedMuons"),
+      elSource           = cms.InputTag("slimmedElectrons"),
+      genJetCollection   = cms.InputTag("ak4GenJetsRecluster"),
+      genParticles       = cms.InputTag("prunedGenParticles"),
+      jetCorrections     = None ,
+   )
+
+   updateJetCollection(
+        process,
+        labelName = "AK4ChsChgR",
+        jetSource = cms.InputTag("selectedPatJetsAK4ChsChg"),
+        pfCandidates = cms.InputTag('packedPFCandidates'),
+        pvSource = cms.InputTag("offlineSlimmedPrimaryVertices"),
+        svSource = cms.InputTag('slimmedSecondaryVertices'),
+        muSource = cms.InputTag('slimmedMuons'),
+        elSource = cms.InputTag('slimmedElectrons'),
+        jetCorrections = None,
+        btagDiscriminators = None,
+        btagInfos = None,
+        explicitJTA = False
+   )
+
 
 
 
@@ -316,6 +422,9 @@ if UsePFForTrkJet:
 if UsePuppiForTrkJet:
    options.outputFile+="PupCvs"
    trk_jet_collection = 'selectedUpdatedPatJetsAK4PuppiChgR'
+if UseCHSForTrkJet:
+   options.outputFile+="ChsCvs"
+   trk_jet_collection = 'selectedUpdatedPatJetsAK4ChsChgR'
 
 if UseSlimmedForStdJet:
    std_jet_collection = "slimmedJetsPuppi"
@@ -326,7 +435,9 @@ if UsePFReclusterForStdJet:
 if UsePuppiReclusterForStdJet:
    std_jet_collection = "selectedUpdatedPatJetsAK4PuppiR"
    options.outputFile+="PuppiRecluster"
-
+if UseCHSReclusterForStdJet:
+   std_jet_collection = "selectedUpdatedPatJetsAK4ChsR"
+   options.outputFile+="ChsRecluster"
 
 from RecoJets.JetProducers.ak4GenJets_cfi import ak4GenJets
 process.ak4GenJetsWithNu = ak4GenJets.clone(src ='packedGenParticles')
