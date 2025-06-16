@@ -39,14 +39,6 @@ void ntuple_JetInfo::getInput(const edm::ParameterSet& iConfig){
     jetAbsEtaMax_=(iConfig.getParameter<double>("jetAbsEtaMax"));
     min_candidate_pt_ = (iConfig.getParameter<double>("minCandidatePt"));
     SkipPU_ = (iConfig.getParameter<bool>("SkipPU"));
-    KeepOnlyB_ = (iConfig.getParameter<bool>("KeepOnlyB"));
-    KeepOnlyBC_ = (iConfig.getParameter<bool>("KeepOnlyBC"));
-    KeepOnlyUDS_ = (iConfig.getParameter<bool>("KeepOnlyUDS"));
-    KeepOnlyG_ = (iConfig.getParameter<bool>("KeepOnlyG"));
-    KeepOnlyPU_ = (iConfig.getParameter<bool>("KeepOnlyPU"));
-
-
-
     
     vector<string> disc_names = iConfig.getParameter<vector<string> >("bDiscriminators");
     for(auto& name : disc_names) {
@@ -105,11 +97,7 @@ void ntuple_JetInfo::initBranches(TTree* tree){
 
     // jet regression
     addBranch(tree,"jet_genmatch_pt", &jet_genmatch_pt_);
-    addBranch(tree,"jet_genmatch_eta", &jet_genmatch_eta_);
-    addBranch(tree,"jet_genmatch_phi", &jet_genmatch_phi_);
     addBranch(tree,"jet_genmatch_wnu_pt", &jet_genmatch_wnu_pt_);
-    addBranch(tree,"jet_genmatch_wnu_eta", &jet_genmatch_wnu_eta_);
-    addBranch(tree,"jet_genmatch_wnu_phi", &jet_genmatch_wnu_phi_);
     addBranch(tree,"jet_genmatch_lep_vis_pt", &jet_genmatch_lep_vis_pt_);
     addBranch(tree,"jet_mumatch_pt", &jet_mumatch_pt_);
     addBranch(tree,"jet_elematch_pt", &jet_elematch_pt_);
@@ -964,16 +952,7 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
         }
     }
     if (SkipPU_ && isPU_) returnval=false; 
-    if (KeepOnlyB_ && !isB_ && !isBB_ && !isGBB_ && !isLeptonicB_ && isLeptonicB_C_) 
-        returnval=false;
-    if (KeepOnlyBC_ && !isB_ && !isBB_ && !isGBB_ && !isLeptonicB_ && !isLeptonicB_C_ && !isC_ && !isCC_ && !isGCC_)
-        returnval=false;
-    if (KeepOnlyUDS_ && !isU_ && !isD_ && !isS_)
-        returnval=false;       
-    if (KeepOnlyG_ && !isG_)
-        returnval=false;
-    if (KeepOnlyPU_ && !isPU_)
-        returnval=false;
+       
   //  std::cout<<"B "<<isB_<<" GBB "<<isGBB_<<" BB "<<isBB_<<" C "<<isC_<<" GCC "<<isGCC_<<" CC "<<isCC_<<" U "<< isU_<<" D "<<isD_<<" NU "<<isMU_<<" ELE "<<isELE_<<endl;
     //truth labeling with fallback to physics definition for light/gluon/undefined of standard flavor definition
     //// Note that jets with gluon->bb (cc) and x->bb (cc) are in the same categories
@@ -1155,22 +1134,14 @@ bool ntuple_JetInfo::fillBranches(const pat::Jet & jet, const size_t& jetidx, co
     }
 
     jet_genmatch_pt_ = -1.0;
-    jet_genmatch_eta_ = -1.0;
-    jet_genmatch_phi_ = -1.0;
     jet_genmatch_wnu_pt_ = -1.0;
-    jet_genmatch_wnu_eta_ = -1.0;
-    jet_genmatch_wnu_phi_ = -1.0; 
-
+    
     if(genjet_pos_matched >= 0){
       jet_genmatch_pt_ = jetv_gen[genjet_pos_matched]->pt();
-      jet_genmatch_eta_ = jetv_gen[genjet_pos_matched]->eta();
-      jet_genmatch_phi_ = jetv_gen[genjet_pos_matched]->phi();
     }
 
     if(genjet_wnu_pos_matched >= 0){
       jet_genmatch_wnu_pt_ = jetv_gen_wnu[genjet_wnu_pos_matched]->pt();
-      jet_genmatch_wnu_eta_ = jetv_gen_wnu[genjet_wnu_pos_matched]->eta();
-      jet_genmatch_wnu_phi_ = jetv_gen_wnu[genjet_wnu_pos_matched]->phi();
     }
 
     genDecay_ = -1.;
